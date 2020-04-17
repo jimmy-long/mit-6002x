@@ -187,8 +187,9 @@ class Robot(object):
         speed: a float (speed > 0)
         """
         # Generate a random starting position, and mark that tile as clean.
-        self.pos = room.getRandomPosition()
-        room.cleanTileAtPosition(self.pos)
+        self.room = room
+        self.pos = self.room.getRandomPosition()
+        self.room.cleanTileAtPosition(self.pos)
 
         # Generate a random starting direction, 0 <= dir < 360.
         self.dir = random.random() * 360
@@ -255,7 +256,16 @@ class StandardRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        raise NotImplementedError
+        # Get a candidate new position.
+        new_pos = self.pos.getNewPosition(self.dir, self.speed)
+
+        # Verify that this position is within the bounds of the room.
+        if not self.room.isPositionInRoom(new_pos):
+            # Spend this turn generating a new angle.
+            self.dir = random.random() * 360
+        else:
+            self.pos = new_pos
+            self.room.cleanTileAtPosition(self.pos)
 
 
 # Uncomment this line to see your implementation of StandardRobot in action!
