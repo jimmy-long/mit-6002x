@@ -18,7 +18,7 @@ import pylab
 # from ps2_verify_movement36 import testRobotMovement
 # If you get a "Bad magic number" ImportError, you are not using Python 3.6
 
-from ps2_verify_movement37 import testRobotMovement
+# from ps2_verify_movement37 import testRobotMovement
 
 # === Provided class Position
 class Position(object):
@@ -291,7 +291,35 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
     robot_type: class of robot to be instantiated (e.g. StandardRobot or
                 RandomWalkRobot)
     """
-    raise NotImplementedError
+    # In order to compute the average across all trials, we will need to keep
+    # track of how long each trial takes.
+    cleaning_times = []
+
+    # Do num_trials number of trials
+    for trial in range(num_trials):
+        # Initialize our room and robot(s)
+        room = RectangularRoom(width, height)
+        robots = []
+        for i in range(num_robots):
+            robots.append(robot_type(room, speed))
+
+        # Initialize some state variables. Namely, a flag to decide if the room is
+        # clean enough to stop the trial, and a counter to track the number of
+        # clock ticks needed to clean the room.
+        roomSufficientlyClean = False
+        ticks = 0
+        while not roomSufficientlyClean:
+            ticks += 1
+
+            for robot in robots:
+                robot.updatePositionAndClean()
+
+            clean_proportion = float(room.getNumCleanedTiles() / room.getNumTiles())
+            roomSufficientlyClean = clean_proportion >= min_coverage
+
+        cleaning_times.append(ticks)
+
+    return sum(cleaning_times) / len(cleaning_times)
 
 # Uncomment this line to see how much your simulation takes on average
 ##print(runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot))
@@ -310,7 +338,16 @@ class RandomWalkRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        raise NotImplementedError
+        # Get a candidate new position.
+        new_pos = self.pos.getNewPosition(self.dir, self.speed)
+
+        # Verify that this position is within the bounds of the room.
+        if self.room.isPositionInRoom(new_pos):
+            self.pos = new_pos
+            self.room.cleanTileAtPosition(self.pos)
+
+        self.dir = random.random() * 360
+        
 
 
 def showPlot1(title, x_label, y_label):
@@ -354,6 +391,26 @@ def showPlot2(title, x_label, y_label):
     pylab.ylabel(y_label)
     pylab.show()
     
+def testRunSimulation():
+    robot_counts = [1, 3, 5]
+    room_sizes = [5, 7, 10, 20]
+
+    for robot_count in robot_counts:
+        for room_size in room_sizes:
+            avg = runSimulation(robot_count, 1.0, room_size, room_size, 1.0, 100, StandardRobot)
+            print('On average, it takes ' + str(avg) + ' ticks for a ' + str(room_size) + 'x' + str(room_size) + ' room to be cleaned by ' + str(robot_count) + ' robots.')
+
+def testCompareStandardAndRandom():
+    print('Standard Robot Tests')
+    print('5x5 Room: ' + str(runSimulation(1, 1.0, 5, 5, 1.0, 30, StandardRobot)))
+    print('7x7 Room: ' + str(runSimulation(1, 1.0, 7, 7, 1.0, 30, StandardRobot)))
+    print('10x10 Room: ' + str(runSimulation(1, 1.0, 10, 10, 1.0, 30, StandardRobot)))
+    print('20x20 Room: ' + str(runSimulation(1, 1.0, 20, 20, 1.0, 30, StandardRobot)))
+    print('Random Walk Robot Tests')
+    print('5x5 Room: ' + str(runSimulation(1, 1.0, 5, 5, 1.0, 30, RandomWalkRobot)))
+    print('7x7 Room: ' + str(runSimulation(1, 1.0, 7, 7, 1.0, 30, RandomWalkRobot)))
+    print('10x10 Room: ' + str(runSimulation(1, 1.0, 10, 10, 1.0, 30, RandomWalkRobot)))
+    print('20x20 Room: ' + str(runSimulation(1, 1.0, 20, 20, 1.0, 30, RandomWalkRobot)))
 
 # === Problem 6
 # NOTE: If you are running the simulation, you will have to close it 
@@ -372,3 +429,4 @@ def showPlot2(title, x_label, y_label):
 #
 #       (... your call here ...)
 #
+testCompareStandardAndRandom()
