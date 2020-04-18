@@ -419,14 +419,9 @@ def testCompareStandardAndRandom():
 #
 # 1) Write a function call to showPlot1 that generates an appropriately-labeled
 #     plot.
-#
-#       (... your call here ...)
-#
+showPlot1('Time It Takes 1 - 10 Robots To Clean 80% Of A Room', 'Number of Robots', 'Average Cleaning Time')
 
 #
 # 2) Write a function call to showPlot2 that generates an appropriately-labeled
 #     plot.
-#
-#       (... your call here ...)
-#
-testCompareStandardAndRandom()
+showPlot2('Time It Takes Two Robots To Clean 80% Of Variously Shaped Rooms', 'Aspect Ratio', 'Average Cleaning Time')
